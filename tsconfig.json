@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+      "lib": ["ES2018", "DOM"],
+      "module": "CommonJS",
+      "outDir": "./build",
+      "rootDir": "./src",
+      "allowJs": true,
+      "moduleResolution": "node",
+      "strict": true,
+      "target": "ES2018",
+      "sourceMap": true,
+      "esModuleInterop": true
+    },
+    "include": ["src/**/*", "./src/types/**/*.ts"],
+    "exclude": ["node_modules", "**/*.test.ts"]
+  }
