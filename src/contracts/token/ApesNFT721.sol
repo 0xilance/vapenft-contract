@@ -12,7 +12,7 @@ import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 /**
  * Reference implementation of ERC721 with EIP2981 support
  */
-contract Apes2981 is ERC721Enumerable, EIP2981RoyaltyOverrideCore, Pausable, Ownable {
+contract Apes2981 is ERC721Enumerable, EIP2981RoyaltyOverrideCore, Ownable {
 	using SafeMath for uint256;
 
 	uint256 public startingIndexBlock;
@@ -21,6 +21,13 @@ contract Apes2981 is ERC721Enumerable, EIP2981RoyaltyOverrideCore, Pausable, Own
 	uint256 public constant MAX_APE_PURCHASE = 20;
 	uint256 public maxApes;
 	bool public saleIsActive = false;
+	
+	struct Team {
+	    address payable addr;
+	    uint percentage;
+	}
+	
+	Team[] internal _team;
 
 	/* Setup Reveal Vars */
 	string public apesReveal = "";
@@ -34,16 +41,35 @@ contract Apes2981 is ERC721Enumerable, EIP2981RoyaltyOverrideCore, Pausable, Own
 	) ERC721(name, symbol) {
 		maxApes = maxNftSupply;
 		revealTimestamp = saleStart + (86400 * 9);
+		
+		/* Add all team mates to the equity mapping */
+		_team.push(Team(payable(0x5B38Da6a701c568545dCfcB03FcB875f56beddC4), 24));
+		_team.push(Team(payable(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2), 24));
+		_team.push(Team(payable(0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c), 24));
+		_team.push(Team(payable(0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db), 24));
+		/* Give some benefits to the seedz project*/
+		_team.push(Team(payable(0x583031D1113aD414F02576BD6afaBfb302140225), 4));
+		
 	}
 
+    /* Encode team distribution percentage */
+    // Embed all individuals equity and payout to seedz project
+    // retain at least 0.1 ether in the smart contract 
+    
 	function withdraw() public onlyOwner {
-		uint256 balance = address(this).balance;
-		address payable recipient =  payable(_msgSender());
-		recipient.transfer(balance);
+	    /* Minimum balance */
+	    require(address(this).balance > 0.5 ether);
+	    uint balance = address(this).balance - 0.1 ether;
+	    
+	    for(uint i = 0; i < _team.length; i++) {
+	        Team storage _st = _team[i];
+	        _st.addr.transfer((balance * _st.percentage) / 100);
+	    }
+	    
 	}
 
 	/**
-	 * Set some Bored Apes aside
+	 * Set some Apes aside
 	 */
 	function reserveApes() public onlyOwner {
 		uint256 supply = totalSupply();
@@ -80,7 +106,7 @@ contract Apes2981 is ERC721Enumerable, EIP2981RoyaltyOverrideCore, Pausable, Own
 	}
 
 	/**
-	 * Mints Bored Apes
+	 * Mints Apes
 	 */
 	function mintApe(uint256 numberOfTokens) public payable {
 		require(saleIsActive, "Sale must be active to mint Ape");
