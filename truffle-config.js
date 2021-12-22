@@ -25,6 +25,10 @@ const MNEMONIC = getToken(".mnemonic");
 const INFURA = getToken(".network");
 const ETHERSCAN = getToken(".etherscan");
 
+const DEPLOY_GAS_LIMIT = 3000000
+const DEPLOY_GAS_PRICE = 150
+
+
 
 module.exports = {
   /**
@@ -62,10 +66,10 @@ module.exports = {
     // options below to some value.
     //
     development: {
-     host: "127.0.0.1",     // Localhost (default: none)
-     port: 8545,            // Standard Ethereum port (default: none)
-     network_id: "*",       // Any network (default: none)
-     websocket: true  
+      host: "127.0.0.1",     // Localhost (default: none)
+      port: 8545,            // Standard Ethereum port (default: none)
+      network_id: "*",       // Any network (default: none)
+      websocket: true  
     },
     // Another network with more advanced options...
     // advanced: {
@@ -79,19 +83,37 @@ module.exports = {
     // Useful for deploying to a public network.
     // NB: It's important to wrap the provider as a function.
     ropsten: {
-    provider: () => new HDWalletProvider(MNEMONIC, INFURA),
-    network_id: 3,       // Ropsten's id
-    gas: 5500000,        // Ropsten has a lower block limit than mainnet
-    confirmations: 2,    // # of confs to wait between deployments. (default: 0)
-    timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
-    skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
+      provider: () => new HDWalletProvider(MNEMONIC, 'https://ropsten.infura.io/v3/' + INFURA),
+      network_id: 3,       // Ropsten's id
+      gas: 5500000,        // Ropsten has a lower block limit than mainnet
+      confirmations: 2,    // # of confs to wait between deployments. (default: 0)
+      timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
+      skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     },
-    // Useful for private networks
-    // private: {
-    // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),
-    // network_id: 2111,   // This network is yours, in the cloud.
-    // production: true    // Treats this network as if it was a public net. (default: false)
-    // }
+    mainnet: {
+      provider: () => new HDWalletProvider(MNEMONIC, 'https://mainnet.infura.io/v3/' + INFURA),
+      network_id: 1,
+      gas: 5500000,        // Ropsten has a lower block limit than mainnet
+      confirmations: 2,    // # of confs to wait between deployments. (default: 0)
+      timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
+      // gasPrice: web3.utils.toWei(new BN(DEPLOY_GAS_PRICE), 'gwei'),
+      // gas: DEPLOY_GAS_LIMIT,
+      skipDryRun: true
+    },
+    kovan: {
+        provider: () => new HDWalletProvider(MNEMONIC, 'https://kovan.infura.io/v3/' + INFURA),
+        network_id: 42,
+        confirmations: 2,
+        // gas: DEPLOY_GAS_LIMIT,
+        skipDryRun: true
+    },
+    rinkeby: {
+        provider: () => new HDWalletProvider(MNEMONIC, 'https://rinkeby.infura.io/v3/' + INFURA),
+        network_id: 4,
+        // gas: DEPLOY_GAS_LIMIT,
+        confirmations: 2,
+        skipDryRun: true
+    },
   },
 
   // Set default mocha options here, use special reporters etc.

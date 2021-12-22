@@ -17,7 +17,7 @@ contract Apes2981 is ERC721Enumerable, EIP2981RoyaltyOverrideCore, Ownable {
 
 	uint256 public startingIndexBlock;
 	uint256 public startingIndex;
-	uint256 public constant APE_PRICE = 80000000000000000; //0.08 ETH
+	uint256 public constant APE_PRICE = 55000000000000000; //0.55 ETH
 	uint256 public constant MAX_APE_PURCHASE = 20;
 	uint256 public maxApes;
 	bool public saleIsActive = false;

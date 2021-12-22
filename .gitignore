@@ -4,7 +4,7 @@
 /src/contracts/**/artifacts
 /src/contracts/.deps
 keys
-
+src/.deps
 *.o
 *.lo
 *.la

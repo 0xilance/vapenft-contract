@@ -15,6 +15,7 @@
     "lint": "tsc --pretty --noEmit",
     "hint": "solhint 'src/contracts/**/*.sol'",
     "migrate:dev": "tsc && truffle migrate --network development",
+    "migrate:mainnet": "tsc && truffle migrate --network mainnet",
     "migrate:ropsten": "tsc && truffle migrate --network ropsten",
     "test": "echo \"Error: no test specified\" && exit 1",
     "truffle": "truffle",
