@@ -1,10 +1,10 @@
 {
-  "name": "cent-smart-contracts",
+  "name": "vapenapes-smart-contracts",
   "version": "1.0.0",
-  "description": "🦄 Core smart contracts of Cent v1",
+  "description": "🦄 Core smart contracts of Vapenapes NFT",
   "license": "ISC",
   "author": "",
-  "homepage": "https://github.com/Centv2/contracts-v1-core#readme",
+  "homepage": "https://github.com/cryptospacestudios/vapenapes-contracts-v1-core#readme",
   "main": "truffle-config.js",
   "scripts": {
     "compile": "truffle compile",
