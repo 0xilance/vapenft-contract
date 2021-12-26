@@ -60,12 +60,11 @@ contract VapenApes2981 is ERC721Enumerable, HookPausable {
 		pause(true);
 
 		/* Add all team mates to the equity mapping */
-		_team.push(Team(payable(DEV_ADDRESS), 24));
-		_team.push(Team(payable(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2), 24));
-		_team.push(Team(payable(0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c), 24));
-		_team.push(Team(payable(0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db), 24));
-		/* Give some Royalties to the seedz project*/
-		_team.push(Team(payable(0x583031D1113aD414F02576BD6afaBfb302140225), 4));
+		_team.push(Team(payable(DEV_ADDRESS), 31));
+		_team.push(Team(payable(0x3358294509A59A8fF942fD61e7F1429a418d015C), 31)); /* d */
+		_team.push(Team(payable(0xb45FA3C125AB4dBe6ec5434E6462D7682382a1b4), 31)); /* J */
+		/* $SEEDZ dev & marketing */
+		_team.push(Team(payable(0x7369BAce49A85D89253634b15aC40597ae7a7Be6), 7));
 	}
 
 	/**
