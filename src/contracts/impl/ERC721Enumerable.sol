@@ -23,7 +23,6 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
 	// Mapping from token id to position in the allTokens array
 	mapping(uint256 => uint256) private _allTokensIndex;
 
-
 	/**
 	 * @dev See {IERC165-supportsInterface}.
 	 */
@@ -98,7 +97,6 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
 		_ownedTokens[to][length] = tokenId;
 		_ownedTokensIndex[tokenId] = length;
 	}
-
 
 	/**
 	 * @dev Private function to add a token to this extension's token tracking data structures.

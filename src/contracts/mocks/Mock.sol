@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-/// @author: manifold.xyz
-
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/presets/ERC1155PresetMinterPauser.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
@@ -19,7 +17,7 @@ import "../IRoyaltyEngineV1.sol";
  * Does not implement any interface
  */
 contract MockContract is Ownable {
-
+	bool public entered;
 }
 
 /**
