@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../impl/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/presets/ERC1155PresetMinterPauser.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
@@ -11,7 +11,6 @@ import "../specs/IRarible.sol";
 import "../specs/IFoundation.sol";
 import "../specs/IEIP2981.sol";
 import "../specs/INiftyGateway.sol";
-import "../IRoyaltyEngineV1.sol";
 
 /**
  * Does not implement any interface
@@ -171,20 +170,20 @@ contract MockERC1155PresetMinterPauser is ERC1155PresetMinterPauser {
 /**
  * Simulate payment
  */
-contract MockRoyaltyPayer {
-	function deposit() public payable {}
+// contract MockRoyaltyPayer {
+// 	function deposit() public payable {}
 
-	function payout(
-		address royaltyEngine,
-		address tokenAddress,
-		uint256 tokenId,
-		uint256 saleAmount
-	) public {
-		address payable[] memory recipients;
-		uint256[] memory amounts;
-		(recipients, amounts) = IRoyaltyEngineV1(royaltyEngine).getRoyaltyView(tokenAddress, tokenId, saleAmount);
-		for (uint256 i = 0; i < recipients.length; i++) {
-			recipients[i].transfer(amounts[i]);
-		}
-	}
-}
+// 	function payout(
+// 		address royaltyEngine,
+// 		address tokenAddress,
+// 		uint256 tokenId,
+// 		uint256 saleAmount
+// 	) public {
+// 		address payable[] memory recipients;
+// 		uint256[] memory amounts;
+// 		(recipients, amounts) = IRoyaltyEngineV1(royaltyEngine).getRoyaltyView(tokenAddress, tokenId, saleAmount);
+// 		for (uint256 i = 0; i < recipients.length; i++) {
+// 			recipients[i].transfer(amounts[i]);
+// 		}
+// 	}
+// }

@@ -1,56 +1,83 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../impl/ERC721Enumerable.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { Pausable } from "@openzeppelin/contracts/security/Pausable.sol";
-import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "./impl/Enumerable.sol";
+import "./impl/HookPausable.sol";
+import "./mocks/IERC20.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
 
 /**
- * Reference implementation of ERC721 with EIP2981 support
+ * Reference implementation of ERC721 with Enumerable and Counter support
  */
-contract Apes2981 is ERC721Enumerable, EIP2981RoyaltyOverrideCore, Ownable {
+contract VapenApes2981 is ERC721Enumerable, HookPausable, Ownable {
+
+	/* ---------- Inheritance for solidity types ---------------- */
 	using SafeMath for uint256;
+	using Counters for Counters.Counter;
+	Counters.Counter private _tokenIdTracker;
+	/* ---------- Inheritance for solidity types ---------------- */
+
+	// uint256 public constant reveal_timestamp = 1627588800; // Thu Jul 29 2021 20:00:00 GMT+0000
+
 
 	uint256 public startingIndexBlock;
 	uint256 public startingIndex;
-	uint256 public constant APE_PRICE = 55000000000000000; //0.55 ETH
-	uint256 public constant MAX_APE_PURCHASE = 20;
-	uint256 public maxApes;
-	bool public saleIsActive = false;
+	uint256 public constant APE_SALEPRICE = 70000000000000000; //0.70 ETH
+	uint256 public constant APE_PRESALE_PRICE = 55000000000000000; //0.55 ETH
+	uint256 public constant MAX_APE_PURCHASE = 10;
+	address public constant DEV_ADDRESS = 0x02fA4fe6cBfa5dC167dDD06727906d0F884351e3;
+	uint256 public constant MAX_APES = 10000;
 
+	/* PRESALE CONFIGURATION */
+
+	uint256 public constant MAX_PRESALE = 4000;
+	uint256 public constant MAX_PRESALE_PURCHASE = 5;
+	uint256 public constant NUM_TO_RESERVE = 50;
+	bool public PRESALE_ACTIVE = false;
+	uint256 public PRESALE_MINTED;
+
+	mapping(address => uint256) public PRESALE_PURCHASES;
+
+	/* Team structure */
 	struct Team {
 		address payable addr;
 		uint256 percentage;
 	}
-
 	Team[] internal _team;
 
-	/* Setup Reveal Vars */
+	/**
+	 * @dev 
+	 * Vapenapes Reveal configuration and handles for Metadata 
+	 */
 	string public apesReveal = "";
+	string public baseTokenURI;
 	uint256 public revealTimestamp;
 
-	constructor(
-		string memory name,
-		string memory symbol,
-		uint256 maxNftSupply,
-		uint256 saleStart
-	) ERC721(name, symbol) {
-		maxApes = maxNftSupply;
-		revealTimestamp = saleStart + (86400 * 9);
+	/* Events and logs */
+  event MintApe(uint256 indexed id);
+
+
+	constructor(string memory baseURI) ERC721("VapenApes", "VAPE") {
+		setBaseURI(baseURI);
+    pause(true);
 
 		/* Add all team mates to the equity mapping */
-		_team.push(Team(payable(0x5B38Da6a701c568545dCfcB03FcB875f56beddC4), 24));
+		_team.push(Team(payable(DEV_ADDRESS), 24));
 		_team.push(Team(payable(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2), 24));
 		_team.push(Team(payable(0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c), 24));
 		_team.push(Team(payable(0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db), 24));
-		/* Give some benefits to the seedz project*/
+		/* Give some Royalties to the seedz project*/
 		_team.push(Team(payable(0x583031D1113aD414F02576BD6afaBfb302140225), 4));
 	}
 
-	/* Encode team distribution percentage */
-	// Embed all individuals equity and payout to seedz project
-	// retain at least 0.1 ether in the smart contract
+	/**
+	 * @dev 
+	 * Encode team distribution percentage
+	 * Embed all individuals equity and payout to seedz project
+	 * retain at least 0.1 ether in the smart contract
+	 */
 
 	function withdraw() public onlyOwner {
 		/* Minimum balance */
@@ -63,20 +90,71 @@ contract Apes2981 is ERC721Enumerable, EIP2981RoyaltyOverrideCore, Ownable {
 		}
 	}
 
+
+/* Extends HookPausable */
+	  function pause(bool val) public onlyOwner {
+        if (val == true) {
+            _pause();
+            return;
+        }
+        _unpause();
+    }
+
+		  modifier saleIsOpen {
+        require(totalSupply() <= MAX_APES, "Sale end");
+        if (_msgSender() != owner()) {
+            require(!paused(), "Pausable: paused");
+        }
+        _;
+    }
+    function totalSupply() internal view returns (uint256) {
+        return _tokenIdTracker.current();
+    }
+
+    function totalMint() public view returns (uint256) {
+        return totalSupply();
+    }
+
+	function baseURI()public  returns (string memory) {
+		return __baseURI__;
+	}
+
+
+
+	/** 
+	* @dev
+	* Sometimes tokens sent to contracts and get lostm, due to user errors
+	* This can enable withdrawal of any mistakenly send ERC-20 token to this address.
+	*/
+	function withdrawTokens(address tokenAddress) external onlyOwner {
+		uint256 balance = IERC20(tokenAddress).balanceOf(address(this));
+		IERC20(tokenAddress).transfer(_msgSender(), balance);
+	}
+
 	/**
 	 * Set some Apes aside
+	 * We will set aside 50 Vapenapes for community giveaways and promotions
 	 */
 	function reserveApes() public onlyOwner {
 		uint256 supply = totalSupply();
 		uint256 i;
-		for (i = 0; i < 30; i++) {
-			_safeMint(msg.sender, supply + i);
+		for (i = 0; i < 50; i++) {
+			_safeMint(_msgSender(), supply + i);
 		}
 	}
 
-	/**
-	 * DM Gargamel in Discord that you're standing right behind him.
-	 */
+
+
+	function reserveApes() public onlyOwner {
+		require(totalSupply().add(NUM_TO_RESERVE) <= MAX_SUPPLY, "Reserve would exceed max supply");
+
+		uint256 supply = totalSupply();
+		uint256 i;
+		for (uint256 i = 0; i < NUM_TO_RESERVE; i++) {
+			_safeMint(_msgSender(), supply + i);
+		}
+	}
+
 	function setRevealTimestamp(uint256 revealTimeStamp) public onlyOwner {
 		revealTimestamp = revealTimeStamp;
 	}
@@ -99,19 +177,55 @@ contract Apes2981 is ERC721Enumerable, EIP2981RoyaltyOverrideCore, Ownable {
 		saleIsActive = !saleIsActive;
 	}
 
+	
+	function flipPresaleState() external onlyOwner {
+		PRESALE_ACTIVE = !PRESALE_ACTIVE;
+	}
+
+
+	function presalePurchasedCount(address addr) external view returns (uint256) {
+		return PRESALE_PURCHASES[addr];
+	}
+
+
+	function presaleMintApe(uint256 numberOfTokens) external payable {
+		require(PRESALE_ACTIVE, "Presale closed");
+		require(PRESALE_MINTED + numberOfTokens <= MAX_PRESALE, "Purchase would exceed max presale");
+
+		uint256 supply = totalSupply();
+		require(supply.add(numberOfTokens) <= MAX_SUPPLY, "Purchase would exceed max supply of baddies");
+		require(PRESALE_PURCHASES[_msgSender()] + numberOfTokens <= MAX_PRESALE_PURCHASE, "Purchase would exceed your max allocation");
+		require(BADDIE_PRICE.mul(numberOfTokens) <= msg.value, "Ether value sent is not correct");
+
+		for (uint256 i = 0; i < numberOfTokens; i++) {
+			PRESALE_MINTED++;
+			PRESALE_PURCHASES[_msgSender()]++;
+			_safeMint(_msgSender(), supply + i);
+		}
+	}
+
+
 	/**
 	 * Mints Apes
 	 */
-	function mintApe(uint256 numberOfTokens) public payable {
+	function mintApe(uint256 numberOfTokens) public payable saleIsOpen {
 		require(saleIsActive, "Sale must be active to mint Ape");
 		require(numberOfTokens <= MAX_APE_PURCHASE, "Can only mint 20 tokens at a time");
+
 		require(totalSupply().add(numberOfTokens) <= maxApes, "Purchase would exceed max supply of Apes");
-		require(APE_PRICE.mul(numberOfTokens) <= msg.value, "Ether value sent is not correct");
+		require(APE_SALEPRICE.mul(numberOfTokens) <= msg.value, "Ether value sent is not correct");
+
 
 		for (uint256 i = 0; i < numberOfTokens; i++) {
-			uint256 mintIndex = totalSupply();
+
+			/* Increment supply and mint token */
+				uint id = _totalSupply();
+        _tokenIdTracker.increment();
 			if (totalSupply() < maxApes) {
-				_safeMint(msg.sender, mintIndex);
+				_safeMint(msg.sender, id);
+
+/* emit mint event */
+emit MintApe(id);
 			}
 		}
 
@@ -120,6 +234,19 @@ contract Apes2981 is ERC721Enumerable, EIP2981RoyaltyOverrideCore, Ownable {
 		if (startingIndexBlock == 0 && (totalSupply() == maxApes || block.timestamp >= revealTimestamp)) {
 			startingIndexBlock = block.number;
 		}
+	}
+
+
+	function tokenURI(uint256 tokenId) public view override returns (string memory) {
+		require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+
+		string memory base = baseURI();
+		if (STARTING_INDEX == 0) {
+			return base;
+		}
+
+		uint256 id = (tokenId + STARTING_INDEX) % MAX_SUPPLY;
+		return string(abi.encodePacked(base, id.toString()));
 	}
 
 	/**
@@ -140,6 +267,18 @@ contract Apes2981 is ERC721Enumerable, EIP2981RoyaltyOverrideCore, Ownable {
 		}
 	}
 
+	   function walletOfOwner(address _owner) external view returns (uint256[] memory) {
+        uint256 tokenCount = balanceOf(_owner);
+
+        uint256[] memory tokensId = new uint256[](tokenCount);
+        for (uint256 i = 0; i < tokenCount; i++) {
+            tokensId[i] = tokenOfOwnerByIndex(_owner, i);
+        }
+
+        return tokensId;
+    }
+
+
 	/**
 	 * Set the starting index block for the collection, essentially unblocking
 	 * setting starting index
@@ -150,149 +289,11 @@ contract Apes2981 is ERC721Enumerable, EIP2981RoyaltyOverrideCore, Ownable {
 		startingIndexBlock = block.number;
 	}
 
-	function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, EIP2981RoyaltyOverrideCore) returns (bool) {
-		return ERC721.supportsInterface(interfaceId) || EIP2981RoyaltyOverrideCore.supportsInterface(interfaceId);
-	}
-
-	/**
-	 * @dev See {IEIP2981RoyaltyOverride-setTokenRoyalties}.
-	 */
-	function setTokenRoyalties(TokenRoyaltyConfig[] calldata royaltyConfigs) external override onlyOwner {
-		_setTokenRoyalties(royaltyConfigs);
-	}
-
-	/**
-	 * @dev See {IEIP2981RoyaltyOverride-setDefaultRoyalty}.
-	 */
-	function setDefaultRoyalty(TokenRoyalty calldata royalty) external override onlyOwner {
-		_setDefaultRoyalty(royalty);
-	}
-}
-
-contract BaddiesNFT is ERC721, Ownable {
-	using SafeMath for uint256;
-
-	bool public SALE_ACTIVE = false;
-	bool public PRESALE_ACTIVE = false;
-	uint256 public PRESALE_MINTED;
-	uint256 public STARTING_INDEX;
-	string public PROVENANCE = "";
-
-	uint256 public constant MAX_SUPPLY = 8765;
-	uint256 public constant MAX_PRESALE = 2346;
-	uint256 public constant MAX_PURCHASE = 10;
-	uint256 public constant MAX_PRESALE_PURCHASE = 3;
-	uint256 public constant BADDIE_PRICE = 0.08765 ether; // 0.08765 ETH
-	uint256 public constant NUM_TO_RESERVE = 65;
-
-	mapping(address => bool) public PRESALER_LIST;
-	mapping(address => uint256) public PRESALE_PURCHASES;
-
-	constructor() public ERC721("Baddies", "BD") {}
-
-	function flipSaleState() external onlyOwner {
-		SALE_ACTIVE = !SALE_ACTIVE;
-	}
-
-	function flipPresaleState() external onlyOwner {
-		PRESALE_ACTIVE = !PRESALE_ACTIVE;
-	}
-
-	function addToPresaleList(address[] calldata entries) external onlyOwner {
-		for (uint256 i = 0; i < entries.length; i++) {
-			address entry = entries[i];
-			require(entry != address(0), "NULL_ADDRESS");
-			require(!PRESALER_LIST[entry], "DUPLICATE_ENTRY");
-
-			PRESALER_LIST[entry] = true;
-		}
-	}
-
-	function removeFromPresaleList(address[] calldata entries) external onlyOwner {
-		for (uint256 i = 0; i < entries.length; i++) {
-			address entry = entries[i];
-			require(entry != address(0), "NULL_ADDRESS");
-
-			PRESALER_LIST[entry] = false;
-		}
-	}
-
-	function isPresaler(address addr) external view returns (bool) {
-		return PRESALER_LIST[addr];
-	}
-
-	function presalePurchasedCount(address addr) external view returns (uint256) {
-		return PRESALE_PURCHASES[addr];
-	}
-
-	function withdraw() public onlyOwner {
-		uint256 balance = address(this).balance;
-		msg.sender.transfer(balance);
-	}
-
-	function reserveBaddies() public onlyOwner {
-		require(totalSupply().add(NUM_TO_RESERVE) <= MAX_SUPPLY, "Reserve would exceed max supply of Baddies");
-
-		uint256 supply = totalSupply();
-		for (uint256 i = 0; i < NUM_TO_RESERVE; i++) {
-			_safeMint(msg.sender, supply + i);
-		}
-	}
-
-	function mintBaddies(uint256 numberOfTokens) external payable {
-		require(SALE_ACTIVE, "Sale must be started to mint baddies");
-		require(numberOfTokens <= MAX_PURCHASE, "Can only mint 10 baddies at a time");
-		uint256 supply = totalSupply();
-		require(supply.add(numberOfTokens) <= MAX_SUPPLY, "Purchase would exceed max supply of baddies");
-		require(BADDIE_PRICE.mul(numberOfTokens) <= msg.value, "Ether value sent is not correct");
-
-		for (uint256 i = 0; i < numberOfTokens; i++) {
-			_safeMint(msg.sender, supply + i);
-		}
-	}
-
-	function presaleMint(uint256 numberOfTokens) external payable {
-		require(PRESALE_ACTIVE, "Presale closed");
-		require(PRESALER_LIST[msg.sender], "Not qualified for presale");
-		require(PRESALE_MINTED + numberOfTokens <= MAX_PRESALE, "Purchase would exceed max presale");
-		uint256 supply = totalSupply();
-		require(supply.add(numberOfTokens) <= MAX_SUPPLY, "Purchase would exceed max supply of baddies");
-		require(PRESALE_PURCHASES[msg.sender] + numberOfTokens <= MAX_PRESALE_PURCHASE, "Purchase would exceed your max allocation");
-		require(BADDIE_PRICE.mul(numberOfTokens) <= msg.value, "Ether value sent is not correct");
-
-		for (uint256 i = 0; i < numberOfTokens; i++) {
-			PRESALE_MINTED++;
-			PRESALE_PURCHASES[msg.sender]++;
-			_safeMint(msg.sender, supply + i);
-		}
-	}
-
-	function setStartingIndex() public onlyOwner {
-		require(STARTING_INDEX == 0, "Starting index is already set");
-
-		STARTING_INDEX = uint256(blockhash(block.number - 1)) % MAX_SUPPLY;
-		if (STARTING_INDEX == 0) {
-			STARTING_INDEX = STARTING_INDEX.add(1);
-		}
-	}
-
-	function setProvenanceHash(string memory provenanceHash) public onlyOwner {
-		PROVENANCE = provenanceHash;
-	}
-
-	function setBaseURI(string memory baseURI) public onlyOwner {
-		_setBaseURI(baseURI);
-	}
-
-	function tokenURI(uint256 tokenId) public view override returns (string memory) {
-		require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
-
-		string memory base = baseURI();
-		if (STARTING_INDEX == 0) {
-			return base;
-		}
-
-		uint256 id = (tokenId + STARTING_INDEX) % MAX_SUPPLY;
-		return string(abi.encodePacked(base, id.toString()));
-	}
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual override(ERC721, ERC721Enumerable, ERC721Pausable) {
+        super._beforeTokenTransfer(from, to, tokenId);
+    }
 }

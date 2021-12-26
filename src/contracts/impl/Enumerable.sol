@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import { ERC721 } from "./ERC721.sol";
+import "./ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
 /**
