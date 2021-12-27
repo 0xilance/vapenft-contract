@@ -22,8 +22,8 @@ contract VapenApes2981 is ERC721Enumerable, HookPausable {
 	uint256 public startingIndexBlock;
 	uint256 public startingIndex;
 	bool public SALE_ACTIVE = false;
-	uint256 public constant APE_SALEPRICE = 70000000000000000; //0.70 ETH
-	uint256 public constant APE_PRESALE_PRICE = 55000000000000000; //0.55 ETH
+	uint256 public constant APE_SALEPRICE = 70000000000000000; //0.070 ETH
+	uint256 public constant APE_PRESALE_PRICE = 55000000000000000; //0.055 ETH
 	uint256 public constant MAX_APE_PURCHASE = 10;
 	address public constant DEV_ADDRESS = 0x02fA4fe6cBfa5dC167dDD06727906d0F884351e3;
 	uint256 public constant MAX_APES = 10000;
@@ -171,17 +171,18 @@ contract VapenApes2981 is ERC721Enumerable, HookPausable {
 		require(PRESALE_MINTED + numberOfTokens <= MAX_PRESALE, "Purchase would exceed max presale");
 
 		uint256 supply = totalSupply();
-		require(supply.add(numberOfTokens) <= MAX_APES, "Purchase would exceed max supply of baddies");
+		require(supply.add(numberOfTokens) <= MAX_APES, "Purchase would exceed max supply of apes");
 		require(PRESALE_PURCHASES[_msgSender()] + numberOfTokens <= MAX_PRESALE_PURCHASE, "Purchase would exceed your max allocation");
 		require(APE_PRESALE_PRICE.mul(numberOfTokens) <= msg.value, "Ether value sent is not correct");
 
 		for (uint256 i = 0; i < numberOfTokens; i++) {
 			/* Increment supply and mint token */
+			uint256 mintIndex = totalSupply();
 			_tokenIdTracker.increment();
 
 			PRESALE_MINTED++;
 			PRESALE_PURCHASES[_msgSender()]++;
-			_safeMint(_msgSender(), supply);
+			_safeMint(_msgSender(), mintIndex);
 		}
 	}
 
