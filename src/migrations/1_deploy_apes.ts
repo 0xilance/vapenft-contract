@@ -1,5 +1,5 @@
-const VapenApes2981 = artifacts.require("VapenApes2981");
+const VapenApes2981 = artifacts.require("VapenApes");
 
 module.exports = function (deployer) {
-  deployer.deploy(VapenApes2981, "Vapenapes", "VAPES", 10000, "98065456578");
+  deployer.deploy(VapenApes2981);
 } as Truffle.Migration;

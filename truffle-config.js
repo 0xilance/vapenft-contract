@@ -11,24 +11,24 @@
  * phrase from a file you've .gitignored so it doesn't accidentally become public.
  *
  */
-
-const fs = require('fs');
+require('dotenv').config()
+const fs = require("fs");
 
 /**
- * @argument location all secrets are stored in the 
+ * @argument location all secrets are stored in the
  * "/keys" directory and created as dotfiles e.g. ".mnemonic"
  */
-const getToken = (location) => fs.readFileSync(`keys/${location}`).toString().trim();
-const HDWalletProvider = require('@truffle/hdwallet-provider');
+const getToken = (location) =>
+  fs.readFileSync(`keys/${location}`).toString().trim();
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 const MNEMONIC = getToken(".mnemonic");
 const INFURA = getToken(".network");
 const ETHERSCAN = getToken(".etherscan");
+// console.log(process.env)
 
-const DEPLOY_GAS_LIMIT = 3000000
-const DEPLOY_GAS_PRICE = 150
-
-
+const DEPLOY_GAS_LIMIT = 3000000;
+const DEPLOY_GAS_PRICE = 150;
 
 module.exports = {
   /**
@@ -39,16 +39,12 @@ module.exports = {
   contracts_build_directory: "./build/contracts",
   migrations_directory: "./build/migrations",
 
-
   /** External configs and enhancements */
-  plugins: [
-    'truffle-plugin-verify'
-  ],
+  plugins: ["truffle-plugin-verify"],
   api_keys: {
-    etherscan: ETHERSCAN,
-    snowtrace: 'MY_API_KEY',
+    // etherscan: ETHERSCAN,
+    snowtrace: ETHERSCAN,
   },
-
   /**
    * Networks define how you connect to your ethereum client and let you set the
    * defaults web3 uses to send transactions. If you don't specify one truffle
@@ -67,10 +63,33 @@ module.exports = {
     // options below to some value.
     //
     development: {
-      host: "127.0.0.1",     // Localhost (default: none)
-      port: 8545,            // Standard Ethereum port (default: none)
-      network_id: "*",       // Any network (default: none)
-      websocket: true  
+      host: "127.0.0.1", // Localhost (default: none)
+      port: 8545, // Standard Ethereum port (default: none)
+      network_id: "*", // Any network (default: none)
+      websocket: true,
+    },
+    fuji: {
+      provider: () => new HDWalletProvider(MNEMONIC, `https://api.avax-test.network/ext/bc/C/rpc`),
+      timeoutBlocks: 200,
+      confirmations: 5,
+      network_id: 43113,
+      // gasPrice: 225000000000,
+    },
+    mainnet: {
+      provider: () => {
+        return new HDWalletProvider({
+          mnemonic: MNEMONIC,
+          providerOrUrl: `https://api.avax.network/ext/bc/C/rpc`,
+          chainId: "43114",
+        });
+      },
+      network_id: 43114,
+      // gasPrice: 225000000000,
+    },
+    compilers: {
+      solc: {
+        version: "0.8.6",
+      },
     },
     // Another network with more advanced options...
     // advanced: {
@@ -84,36 +103,49 @@ module.exports = {
     // Useful for deploying to a public network.
     // NB: It's important to wrap the provider as a function.
     ropsten: {
-      provider: () => new HDWalletProvider(MNEMONIC, 'https://ropsten.infura.io/v3/' + INFURA),
-      network_id: 3,       // Ropsten's id
-      gas: 5500000,        // Ropsten has a lower block limit than mainnet
-      confirmations: 2,    // # of confs to wait between deployments. (default: 0)
-      timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
-      skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
+      provider: () =>
+        new HDWalletProvider(
+          MNEMONIC,
+          "https://ropsten.infura.io/v3/" + INFURA
+        ),
+      network_id: 3, // Ropsten's id
+      gas: 5500000, // Ropsten has a lower block limit than mainnet
+      confirmations: 2, // # of confs to wait between deployments. (default: 0)
+      timeoutBlocks: 200, // # of blocks before a deployment times out  (minimum/default: 50)
+      skipDryRun: true, // Skip dry run before migrations? (default: false for public nets )
     },
-    mainnet: {
-      provider: () => new HDWalletProvider(MNEMONIC, 'https://mainnet.infura.io/v3/' + INFURA),
+    ethMainnet: {
+      provider: () =>
+        new HDWalletProvider(
+          MNEMONIC,
+          "https://mainnet.infura.io/v3/" + INFURA
+        ),
       network_id: 1,
-      gas: 5500000,        // Ropsten has a lower block limit than mainnet
-      confirmations: 2,    // # of confs to wait between deployments. (default: 0)
-      timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
+      gas: 5500000, // Ropsten has a lower block limit than mainnet
+      confirmations: 2, // # of confs to wait between deployments. (default: 0)
+      timeoutBlocks: 200, // # of blocks before a deployment times out  (minimum/default: 50)
       // gasPrice: web3.utils.toWei(new BN(DEPLOY_GAS_PRICE), 'gwei'),
       // gas: DEPLOY_GAS_LIMIT,
-      skipDryRun: true
+      skipDryRun: true,
     },
     kovan: {
-        provider: () => new HDWalletProvider(MNEMONIC, 'https://kovan.infura.io/v3/' + INFURA),
-        network_id: 42,
-        confirmations: 2,
-        // gas: DEPLOY_GAS_LIMIT,
-        skipDryRun: true
+      provider: () =>
+        new HDWalletProvider(MNEMONIC, "https://kovan.infura.io/v3/" + INFURA),
+      network_id: 42,
+      confirmations: 2,
+      // gas: DEPLOY_GAS_LIMIT,
+      skipDryRun: true,
     },
     rinkeby: {
-        provider: () => new HDWalletProvider(MNEMONIC, 'https://rinkeby.infura.io/v3/' + INFURA),
-        network_id: 4,
-        // gas: DEPLOY_GAS_LIMIT,
-        confirmations: 2,
-        skipDryRun: true
+      provider: () =>
+        new HDWalletProvider(
+          MNEMONIC,
+          "https://rinkeby.infura.io/v3/" + INFURA
+        ),
+      network_id: 4,
+      // gas: DEPLOY_GAS_LIMIT,
+      confirmations: 2,
+      skipDryRun: true,
     },
   },
 
@@ -126,15 +158,15 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.8.7",    // Fetch exact version from solc-bin (default: truffle's version)
+      version: "0.8.7", // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
       optimizer: {
         enabled: true,
-        runs: 10000
+        runs: 10000,
       },
       //  evmVersion: "byzantium"
       // }
-    }
+    },
   },
 };

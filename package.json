@@ -14,13 +14,14 @@
     "postinstall": "yarn compile && yarn typegen",
     "lint": "tsc --pretty --noEmit",
     "hint": "solhint 'src/contracts/**/*.sol'",
+    "migrate:fuji": "tsc && truffle migrate --network fuji",
     "migrate:dev": "tsc && truffle migrate --network development",
     "migrate:mainnet": "tsc && truffle migrate --network mainnet",
     "migrate:ropsten": "tsc && truffle migrate --network ropsten",
     "test": "echo \"Error: no test specified\" && exit 1",
     "truffle": "truffle",
     "typegen": "typechain --target=truffle-v5 --out-dir src/types 'build/contracts/*.json'",
-    "verify:apes": "truffle run verify PlatformPool --network"
+    "verify:apes": "truffle verify VapenApes --network"
   },
   "devDependencies": {
     "@manifoldxyz/libraries-solidity": "^1.0.2",
