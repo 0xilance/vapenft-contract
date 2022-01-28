@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./impl/Enumerable.sol";
-import "./impl/HookPausable.sol";
-import "./mocks/IERC20.sol";
+import "./lib/Enumerable.sol";
+import "./lib/HookPausable.sol";
+import "./lib/IERC20.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 
 /**
  * Reference implementation of ERC721 with Enumerable and Counter support
  */
-contract VapenApes2981 is ERC721Enumerable, HookPausable {
+contract VapenApes is ERC721Enumerable, ReentrancyGuard, HookPausable {
 	/* ---------- Inheritance for solidity types ---------------- */
 	using SafeMath for uint256;
 	using Counters for Counters.Counter;
@@ -22,10 +24,10 @@ contract VapenApes2981 is ERC721Enumerable, HookPausable {
 	uint256 public startingIndexBlock;
 	uint256 public startingIndex;
 	bool public SALE_ACTIVE = false;
-	uint256 public constant APE_SALEPRICE = 70000000000000000; //0.070 ETH
-	uint256 public constant APE_PRESALE_PRICE = 55000000000000000; //0.055 ETH
+	uint256 public constant APE_SALEPRICE = 3500000000000000000; //3.5 AVAX
+	uint256 public constant APE_PRESALE_PRICE = 2500000000000000000; //2.5 AVAX
 	uint256 public constant MAX_APE_PURCHASE = 10;
-	address public constant DEV_ADDRESS = 0x02fA4fe6cBfa5dC167dDD06727906d0F884351e3;
+	address public constant DEV_ADDRESS = 0x59E52C70470f44BD0d01E4CE332A05dB5AeCD93C;
 	uint256 public constant MAX_APES = 10000;
 
 	/* PRESALE CONFIGURATION */
@@ -56,7 +58,7 @@ contract VapenApes2981 is ERC721Enumerable, HookPausable {
 	/* Events and logs */
 	event MintApe(uint256 indexed id);
 
-	constructor() ERC721("VapenApes", "VAPE") {
+	constructor() ERC721("VapenApes", "VAPES") {
 		pause(true);
 
 		/* Add all team mates to the equity mapping */
