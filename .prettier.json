@@ -5,14 +5,14 @@
     "printWidth": 160,
     "tabWidth": 4,
     "overrides": [
-        {
-          "files": "src/contracts/**/*.sol",
-          "options": {
-            "printWidth": 160,
+      {
+        "files": "src/**/*.sol",
+        "options": {
             "useTabs": true,
             "bracketSpacing": true,
             "explicitTypes": "always"
           }
         }
       ]
+
 }

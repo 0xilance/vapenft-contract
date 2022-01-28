@@ -45,7 +45,8 @@ module.exports = {
     'truffle-plugin-verify'
   ],
   api_keys: {
-    etherscan: ETHERSCAN
+    etherscan: ETHERSCAN,
+    snowtrace: 'MY_API_KEY',
   },
 
   /**

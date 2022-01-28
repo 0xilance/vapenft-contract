@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.0;
 
-import "./ERC721.sol";
 import "./Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
 /**
@@ -14,21 +14,21 @@ import "@openzeppelin/contracts/security/Pausable.sol";
  * event of a large bug.
  */
 abstract contract HookPausable is ERC721, Ownable, Pausable {
-	/**
-	 * @dev See {ERC721-_beforeTokenTransfer}.
-	 *
-	 * Requirements:
-	 *
-	 * - the contract must not be paused.
-	 */
-	function _beforeTokenTransfer(
-		address from,
-		address to,
-		uint256 tokenId
-	) internal virtual override {
-		super._beforeTokenTransfer(from, to, tokenId);
-		if (_msgSender() != owner()) {
-			require(!paused(), "HookPausable: token transfer while paused");
-		}
-	}
+    /**
+     * @dev See {ERC721-_beforeTokenTransfer}.
+     *
+     * Requirements:
+     *
+     * - the contract must not be paused.
+     */
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual override {
+        super._beforeTokenTransfer(from, to, tokenId);
+        if (_msgSender() != owner()) {
+            require(!paused(), "HookPausable: token transfer while paused");
+        }
+    }
 }
